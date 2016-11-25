@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <h:outputStylesheet library="css" name="table-style.css"  />
+    </h:head>
+    <h:body>
+    	<h3>JSF 2.0 + Ajax Hello World Example</h3>
+
+    	<h:form>
+
+
+            <br/>
+            <h1>JSF 2 dataTable example</h1>
+
+            <h:inputText id="name" value="#{helloBean.name}"></h:inputText>
+            <h:commandButton value="Welcome Me">
+                <f:ajax execute="name" render="output" />
+            </h:commandButton>
+
+            <br/>
+
+            <p:commandButton id="ajaxBtnId" value="Есть ли подходящие фильмы?"
+                                   action="#{helloBean.showMessage()}"
+                                   update="growlMessageId" />
+            <br/>
+
+            <h2><h:outputText id="output" value="#{helloBean.getSayWelcome()}" /></h2>
+
+            <p:growl id="growlMessageId" showDetail="true" widgetVar="growlMessageId"/>
+
+            <h:commandButton value="Welcome Me">
+                <f:ajax execute="name" render="outputFilm" />
+            </h:commandButton>
+
+            <h:dataTable id="outputFilm" value="#{helloBean.getFilms()}" var="f"
+                         styleClass="order-table"
+                         headerClass="order-table-header"
+                         rowClasses="order-table-odd-row,order-table-even-row"
+            >
+
+                <h:column>
+                    <!-- column header -->
+                    <f:facet name="header">Order No</f:facet>
+                    <!-- row record -->
+                    #{f.film.name}
+                </h:column>
+
+            </h:dataTable>
+    	</h:form>
+
+	</h:body>
+</html>
