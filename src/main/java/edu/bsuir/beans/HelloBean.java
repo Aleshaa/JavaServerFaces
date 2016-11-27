@@ -1,17 +1,25 @@
 package edu.bsuir.beans;
 
+import edu.bsuir.DAO.AbstractDAO;
+import edu.bsuir.DAO.FilmDAO;
+import edu.bsuir.DAO.PictureDAO;
 import edu.bsuir.model.Film;
 import edu.bsuir.model.FilmView;
+import edu.bsuir.model.FilterView;
 import edu.bsuir.model.Picture;
+import edu.bsuir.utils.ParseUtil;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @ManagedBean
@@ -19,14 +27,94 @@ import java.util.List;
 public class HelloBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
+	private FilmView selectedFilm;
+
 	private String name;
-	private Time startDuration;
-	private Time endDuration;
+	private Date startDuration;
+	private Date endDuration;
 	private String[] genre;
 	private String country;
-	private Year year;
-	private Time startTime;
+	private String year; //String
+	private Date startTime;
+
+	/**
+	 * @return
+	 * @throws IOException
+	 */
+	public List<FilmView> getFilms() throws IOException {
+
+		if (name != null && startDuration != null && endDuration != null && genre != null &&
+				country != null && year != null && startTime != null) {
+
+			SimpleDateFormat localDateFormat = new SimpleDateFormat("HH:mm:ss");
+			String startDurationString = localDateFormat.format(startDuration);
+			String endDurationString = localDateFormat.format(endDuration);
+			String startTimeString = localDateFormat.format(startTime);
+
+			Year yearObj = Year.of(Integer.parseInt(year));
+
+			AbstractDAO<Film> filmDAO = new FilmDAO();
+			AbstractDAO<Picture> pictureAbstractDAO = new PictureDAO();
+
+			List<Film> filmList = filmDAO.getResult(new FilterView(name, Time.valueOf(startDurationString),
+					Time.valueOf(endDurationString), genre, country, yearObj, Time.valueOf(startTimeString)));
+			List<FilmView> filmViewList = new ArrayList<FilmView>();
+			for (Film film : filmList) {
+				filmViewList.add(new FilmView(film, pictureAbstractDAO.get(film.getPictureId())));
+			}
+			ParseUtil.writeIntoExcel(filmList);
+
+			return filmViewList;
+		} else
+			return null;
+	}
+
+	public void execute() {
+		try {
+			if (name != null && startDuration != null && endDuration != null && genre != null &&
+					country != null && year != null && startTime != null) {
+
+				SimpleDateFormat localDateFormat = new SimpleDateFormat("HH:mm:ss");
+				String startDurationString = localDateFormat.format(startDuration);
+				String endDurationString = localDateFormat.format(endDuration);
+				String startTimeString = localDateFormat.format(startTime);
+
+				Year yearObj = Year.of(Integer.parseInt(year));
+
+				AbstractDAO<Film> filmDAO = new FilmDAO();
+
+				List<Film> filmList = filmDAO.getResult(new FilterView(name, Time.valueOf(startDurationString),
+						Time.valueOf(endDurationString), genre, country, yearObj, Time.valueOf(startTimeString)));
+				if (filmList.isEmpty()) {
+					FacesMessage message = new FacesMessage("Подтверждение", "Нет");
+					message.setSeverity(FacesMessage.SEVERITY_INFO);
+					FacesContext.getCurrentInstance().addMessage(null, message);
+				} else {
+					FacesMessage message = new FacesMessage("Подтверждение", "Да");
+					message.setSeverity(FacesMessage.SEVERITY_INFO);
+					FacesContext.getCurrentInstance().addMessage(null, message);
+				}
+			} else {
+				FacesMessage message = new FacesMessage("Warning", "Не все поля заполнены");
+				message.setSeverity(FacesMessage.SEVERITY_WARN);
+				FacesContext.getCurrentInstance().addMessage(null, message);
+			}
+		} catch (Exception ex) {
+			FacesMessage message = new FacesMessage("Error", "Проблема с вводимыми полями");
+			message.setSeverity(FacesMessage.SEVERITY_FATAL);
+			FacesContext.getCurrentInstance().addMessage(null, message);
+		}
+	}
+
+	public FilmView getSelectedFilm() {
+		return selectedFilm;
+	}
+
+	public void setSelectedFilm(FilmView selectedFilm) {
+		this.selectedFilm = selectedFilm;
+	}
+
 
 	public String getName() {
 		return name;
@@ -35,65 +123,52 @@ public class HelloBean implements Serializable {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public String getSayWelcome(){
-		//check if null?
-		if("".equals(name) || name == null){
-			return "";
-		}else{
-			return "Ajax message : Welcome " + name;
-		}
-	}
 
-	public List<FilmView> getFilms() {
-
-		List<Film> filmList = new ArrayList<Film>();
-		Film tempFilm = new Film(1,name, new Time(1), "qwe", "Bel", Year.of(2016), 1);
-		filmList.add(tempFilm);
-		/*List<Film> filmList = new FilterView(name, new Time(1), new Time(1), new String[]{"qwe", "zcx", "asd"}, "Bel", Year.of(2016), new Time(1));*/
-		List<FilmView> filmViewList = new ArrayList<FilmView>();
-		for(Film film : filmList) {
-			filmViewList.add(new FilmView(film, new Picture(1, "test", "test", 1, 1)));
-		}
-
-		return filmViewList;
-	}
-
-	public void showMessage() {
-		FacesMessage message = new FacesMessage("Подтверждение", "Да");
-		message.setSeverity(FacesMessage.SEVERITY_INFO); //как выглядит окошко с сообщением
-		FacesContext.getCurrentInstance().addMessage(null, message);
-	}
-
-	public Time getStartDuration() {
+	public Date getStartDuration() {
 		return startDuration;
 	}
 
-	public void setStartDuration(Time startDuration) {
+	public void setStartDuration(Date startDuration) {
 		this.startDuration = startDuration;
 	}
 
-	public Time getEndDuration() {
+	public Date getEndDuration() {
 		return endDuration;
 	}
 
-	public void setEndDuration(Time endDuration) {
+	public void setEndDuration(Date endDuration) {
 		this.endDuration = endDuration;
+	}
+
+	public String[] getGenre() {
+		return genre;
 	}
 
 	public void setGenre(String[] genre) {
 		this.genre = genre;
 	}
 
+	public String getCountry() {
+		return country;
+	}
+
 	public void setCountry(String country) {
 		this.country = country;
 	}
 
-	public void setYear(Year year) {
+	public String getYear() {
+		return year;
+	}
+
+	public void setYear(String year) {
 		this.year = year;
 	}
 
-	public void setStartTime(Time startTime) {
+	public Date getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(Date startTime) {
 		this.startTime = startTime;
 	}
 }

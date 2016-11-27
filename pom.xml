@@ -66,11 +66,13 @@
 
       <!--Primefaces library-->
       <!--Primefaces библиотеки-->
+      <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
       <dependency>
           <groupId>org.primefaces</groupId>
           <artifactId>primefaces</artifactId>
-          <version>${primefaces-version}</version>
+          <version>6.0</version>
       </dependency>
+
       <!-- https://mvnrepository.com/artifact/org.primefaces.extensions/primefaces-extensions -->
       <dependency>
           <groupId>org.primefaces.extensions</groupId>
@@ -81,10 +83,18 @@
 
       <!--Primefaces themes-->
       <!--Primefaces темы-->
-      <dependency>
+      <!-- https://mvnrepository.com/artifact/org.primefaces.themes/all-themes -->
+      <!--<dependency>
           <groupId>org.primefaces.themes</groupId>
           <artifactId>all-themes</artifactId>
           <version>1.0.10</version>
+      </dependency>-->
+
+      <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+      <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>5.1.35</version>
       </dependency>
   </dependencies>
 

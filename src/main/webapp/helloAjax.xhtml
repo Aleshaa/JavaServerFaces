@@ -7,50 +7,146 @@
       xmlns:p="http://primefaces.org/ui">
 
     <h:head>
-        <h:outputStylesheet library="css" name="table-style.css"  />
+        <h:outputStylesheet library="css" name="common.css"/>
     </h:head>
     <h:body>
-    	<h3>JSF 2.0 + Ajax Hello World Example</h3>
 
-    	<h:form>
-
-
+        <h:form styleClass="container" id="form">
             <br/>
-            <h1>JSF 2 dataTable example</h1>
+            <div class="form-container">
+                <h3>Кинотеатр</h3>
+                <p:outputLabel value="Продолжительность:"/>
+                <br/>
+                <p:outputLabel for="startDuration" value="от:"/>
+                <p:calendar id="startDuration" value="#{helloBean.startDuration}" pattern="HH:mm" timeOnly="true"/>
+                <br/>
+                <br/>
+                <p:outputLabel for="endDuration" value="до:"/>
+                <p:calendar id="endDuration" value="#{helloBean.endDuration}" pattern="HH:mm" timeOnly="true"/>
+                <br/>
+                <br/>
+                <br/>
 
-            <h:inputText id="name" value="#{helloBean.name}"></h:inputText>
-            <h:commandButton value="Welcome Me">
-                <f:ajax execute="name" render="output" />
-            </h:commandButton>
+                <p:outputLabel value="Жанр:"/>
+                <br/>
+                <p:selectManyCheckbox id="genre" value="#{helloBean.genre}">
+                    <f:selectItem itemLabel="Фантастика" itemValue="Fantastic"/>
+                    <f:selectItem itemLabel="Боевик" itemValue="Thriller"/>
+                    <f:selectItem itemLabel="Комедия" itemValue="Comedy"/>
+                    <f:selectItem itemLabel="Драма" itemValue="Drama"/>
+                </p:selectManyCheckbox>
+                <br/>
 
-            <br/>
+                <h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
+                    <p:outputLabel for="country" value="Страна:"/>
+                    <p:selectOneRadio id="country" value="#{helloBean.country}">
+                        <f:selectItem itemLabel="США" itemValue="USA"/>
+                        <f:selectItem itemLabel="Франция" itemValue="FRA"/>
+                        <f:selectItem itemLabel="Россия" itemValue="RUS"/>
+                    </p:selectOneRadio>
+                </h:panelGrid>
+                <br/>
 
-            <p:commandButton id="ajaxBtnId" value="Есть ли подходящие фильмы?"
-                                   action="#{helloBean.showMessage()}"
-                                   update="growlMessageId" />
-            <br/>
+                <h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
+                    <p:outputLabel for="console" value="Год:"/>
+                    <p:selectOneMenu id="console" value="#{helloBean.year}" style="width:125px">
+                        <f:selectItem itemLabel="2011" itemValue="2011"/>
+                        <f:selectItem itemLabel="2012" itemValue="2012"/>
+                        <f:selectItem itemLabel="2013" itemValue="2013"/>
+                        <f:selectItem itemLabel="2014" itemValue="2014"/>
+                        <f:selectItem itemLabel="2015" itemValue="2015"/>
+                        <f:selectItem itemLabel="2016" itemValue="2016"/>
+                    </p:selectOneMenu>
+                </h:panelGrid>
+                <br/>
 
-            <h2><h:outputText id="output" value="#{helloBean.getSayWelcome()}" /></h2>
+                <p:outputLabel value="Раннее время начала сеанса:"/>
+                <br/>
+                <p:calendar id="startTime" value="#{helloBean.startTime}" pattern="HH:mm" timeOnly="true"/>
+                <br/>
+                <br/>
 
-            <p:growl id="growlMessageId" showDetail="true" widgetVar="growlMessageId"/>
+                <p:outputLabel value="Название:"/>
+                <br/>
+                <h:inputText id="name" value="#{helloBean.name}"/>
+                <br/>
+                <br/>
 
-            <h:commandButton value="Найти фильм">
-                <f:ajax execute="name" render="outputFilm" />
-            </h:commandButton>
+                <p:remoteCommand name="rc" update="msgs" actionListener="#{helloBean.execute}"/>
 
-            <h:dataTable id="outputFilm" value="#{helloBean.getFilms()}" var="f"
-                         styleClass="order-table"
-                         headerClass="order-table-header"
-                         rowClasses="order-table-odd-row,order-table-even-row">
+                <p:growl id="msgs" showDetail="true"/>
+                <p:commandButton type="button" onclick="rc()" value="Проверить есть ли такие фильмы"
+                                 icon="ui-icon-refresh"/>
+                <br/>
+                <br/>
 
-                <h:column>
-                    <!-- column header -->
-                    <f:facet name="header">Order No</f:facet>
-                    <!-- row record -->
-                    #{f.film.name}
-                </h:column>
+                <p:commandButton type="button" value="Найти фильм">
+                    <f:ajax execute="name" render="outputFilm"/>
+                </p:commandButton>
+                <br/>
 
-            </h:dataTable>
+            </div>
+            <p:dataGrid id="outputFilm" var="film" value="#{helloBean.getFilms()}" columns="3" layout="grid"
+                        rows="12" paginator="true"
+                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                        rowsPerPageTemplate="6,12,16"
+            >
+
+                <f:facet name="header">
+                    Подходящие фильмы
+                </f:facet>
+
+                <p:panel header="#{film.film.name}" style="text-align:center">
+                    <h:panelGrid columns="1" style="width:100%">
+                        <p:graphicImage name="img/#{film.picture.uploadedName}"/>
+
+                        <p:commandLink update=":form:filmDetail" oncomplete="PF('filmDialog').show()"
+                                       title="View Detail">
+                            <h:outputText styleClass="ui-icon ui-icon-search" style="margin:0 auto;"/>
+                            <f:setPropertyActionListener value="#{film}" target="#{helloBean.selectedFilm}"/>
+                        </p:commandLink>
+                    </h:panelGrid>
+                </p:panel>
+
+            </p:dataGrid>
+
+            <p:dialog header="Информация о фильме" widgetVar="filmDialog" modal="true" showEffect="fade"
+                      hideEffect="fade" resizable="false">
+                <p:outputPanel id="filmDetail" style="text-align:center;">
+                    <p:panelGrid columns="2" rendered="#{not empty helloBean.selectedFilm}" columnClasses="label,value">
+
+                        <h:outputText value="Название:"/>
+                        <h:outputText value="#{helloBean.selectedFilm.film.name}"/>
+
+                        <h:outputText value="Жанр:"/>
+                        <h:outputText value="#{helloBean.selectedFilm.film.genre}"/>
+
+                        <h:outputText value="Страна"/>
+                        <h:outputText value="#{helloBean.selectedFilm.film.country}"/>
+
+                        <h:outputText value="Год:"/>
+                        <h:outputText value="#{helloBean.selectedFilm.film.year}"/>
+
+                    </p:panelGrid>
+                </p:outputPanel>
+            </p:dialog>
+
+            <!--<div class="row">
+                <ui:repeat id="outputFilm" value="#{helloBean.getFilms()}" var="film">
+                    <div class="col-sm-6 col-md-4">
+                        <div class="thumbnail">
+                            <div class="caption">
+                                <h3>#{film.film.name}</h3>
+                                <p>Длительность: ${film.film.duration}<br/>
+                                    Жанр: ${film.film.genre} <br/>
+                                    Страна: ${film.film.country} <br/>
+                                    Год: ${film.film.year} <br/>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </ui:repeat>
+            </div>-->
     	</h:form>
 
 	</h:body>
